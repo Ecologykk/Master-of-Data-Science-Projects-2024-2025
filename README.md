@@ -3,7 +3,7 @@
 ## Here you will find some projects, courses opinion and grades, related to the disciplines I attended in my Masters's degree, obtained at the Faculty of Sciences of the University of Lisbon.
 ---
 
-## 🏆 1st Year, 1st Semester (Completed)
+## 🏆 1st Year, 1st Semester
 
 ### 📊 Multivariate Data Analysis (Análise de Dados Multivariados) - Grade: **16**  
 A nice course, but a bit rushed since it covered a lot of topics in a short time. The practical part in R was sufficient to learn, though.  
