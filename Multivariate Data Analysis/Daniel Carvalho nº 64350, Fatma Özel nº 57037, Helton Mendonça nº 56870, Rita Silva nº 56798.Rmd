@@ -1,0 +1,360 @@
+---
+title: "Activity A - PCA and Clustering on Air Pollution Data "
+author: Daniel Carvalho nº 64350, Fatma Özel nº 57037, Helton Mendonça nº 56870, Rita
+  Silva nº 56798
+date: "2024-11-28"
+output: pdf_document
+---
+# Introduction
+In this work we looked at data on pollution in cities in the United States of America, and explored which variables contribute most to understanding it.
+
+# Data
+Our dataset called airpollution.csv includes the following variables: city, so2, temp, manuf, pop, wind, precip and days.
+
+# Descriptive Analysis
+
+
+## Reading the Data
+```{r}
+airpollution <- read.csv("C:/Users/Rita/OneDrive - Universidade de Lisboa/Fundamentos de Bases de Dados/A3/airpollution.csv", header = TRUE)
+head(airpollution)
+```
+## Types of Variables
+```{r}
+str(airpollution)
+```
+## Unique Names for Cities
+```{r}
+airpollution[,1]
+```
+# PCA Preparation
+
+We considered the variables temp, manuf, pop, wind, precip and days for the PCA analysis, as shown below.
+```{r}
+airpollution_variables <- airpollution[3:8]
+rownames(airpollution_variables)<- airpollution[,1]
+airpollution_variables
+```
+
+```{r}
+str(airpollution_variables)
+```
+```{r}
+dim(airpollution_variables)
+```
+## Localization Measures
+
+```{r}
+summary(airpollution_variables)
+```
+## Dispersion Measures
+
+```{r}
+library(dplyr)
+airpollution_variables %>% summarise_if(is.numeric,sd)
+```
+For the PCA we will use the correlation matrix, since the measure units for each variable are different
+and also taking into account that the standard deviation and mean are different.
+
+
+# Principal Component Analysis
+```{r}
+# Obtaining Eigenvalues and Eigenvectors (based on the correlation matrix)
+
+## 1st) Determination of the correlation matrix
+
+cor_airpollution <- cor(airpollution_variables)
+cor_airpollution
+```
+```{r}
+## 2nd) Obtaining Eigenvalues and Eigenvectors
+
+eigen_airpollution <- eigen(cor_airpollution)
+eigen_airpollution
+```
+According to Kaiser's criteria we need to retain only the principal components which correspond to eigenvalues greater than 1. So, we retain the first three principal components.
+
+# Performing PCA
+```{r}
+pca_airpollution <- princomp(airpollution_variables,cor=TRUE)
+print(summary(pca_airpollution),loadings = TRUE)
+```
+With three principal components we have 85% (0.848) of variance explained.
+
+The first principal component explain 37% (0.366) of the variance.
+The second principal component explain 25% (0.249) of the variance.
+The third principal component explain 23% (0.232) of the variance.
+
+```{r}
+#Calculating total variance explained by each principal component
+var_explained_airpollution = pca_airpollution$sdev^2 / sum(pca_airpollution$sdev^2)
+
+library(ggplot2)
+
+qplot(c(2:7), var_explained_airpollution) +
+  geom_line() +
+  xlab("Principal Component") +
+  ylab("Variance Explained") +
+  ggtitle("Scree Plot") +
+  ylim(0,1)
+```
+Based in all the methodologies, we should consider first three principal components.
+
+Next we will identify the variables that contribute more for the explanation of each principal component retained.
+
+# Contribution of variables for the explanation of each principal component retained
+
+We will use the following formula: $|l_{ij}| \geq \sqrt{\frac{\lambda_j}{p}}$
+```{r}
+component_matrix <- cor(airpollution_variables,pca_airpollution$scores)
+component_matrix
+```
+
+```{r}
+sqrt(eigen_airpollution$values[1]/6)
+```
+
+Variables that must be used in the interpretation of the first principal component: manuf and pop.
+
+
+```{r}
+sqrt(eigen_airpollution$values[2]/6)
+```
+
+Variables that must be used in the interpretation of the second principal component: precip and days.
+
+
+```{r}
+sqrt(eigen_airpollution$values[3]/6)
+```
+
+Variables that must be used in the interpretation of the third principal component: temp and precip.
+
+
+# Importance of the variables for the explanation of each of the principal components retained
+
+We will use the following formula: $a_{ij}^2 =(\frac{l_{ij}}{\sqrt(\lambda_{j})})^2$
+
+```{r}
+#1st PC
+## manuf
+a_21_square <- (component_matrix[2,1]/sqrt(eigen_airpollution$values[1]))^2 
+a_21_square
+```
+
+```{r}
+#1st PC
+## pop
+a_31_square <- (component_matrix[3,1]/sqrt(eigen_airpollution$values[1]))^2 
+a_31_square
+```
+The variable that contributes most to explaining the first principal component is manuf.
+
+```{r}
+#2nd PC
+## precip
+a_52_square <- (component_matrix[5,2]/sqrt(eigen_airpollution$values[2]))^2 
+a_52_square
+```
+
+```{r}
+#2nd PC
+## days
+a_62_square <- (component_matrix[6,2]/sqrt(eigen_airpollution$values[2]))^2 
+a_62_square
+```
+The variable that contributes most to explaining the second principal component is days.
+
+```{r}
+#3rd PC
+## temp
+a_13_square <- (component_matrix[1,3]/sqrt(eigen_airpollution$values[3]))^2 
+a_13_square
+```
+
+```{r}
+#3rd PC
+## precip
+a_53_square <- (component_matrix[5,3]/sqrt(eigen_airpollution$values[3]))^2 
+a_53_square
+```
+The variable that contributes most to explaining the third principal component is temp.
+
+
+# Graphical representation of the principal components
+```{r}
+# Extracting scores (PC coordinates for samples) and loadings (contributions of variables)
+scores <- as.data.frame(pca_airpollution$scores)  # Principal component scores
+loadings <- as.data.frame(pca_airpollution$loadings[, 1:2])  # Loadings for the first two PCs
+```
+
+```{r}
+# Renaming the columns for clarity
+colnames(scores) <- c("PC1", "PC2")
+rownames(scores) <- airpollution$city
+loadings$Variables <- rownames(loadings)
+colnames(loadings) <- c("PC1", "PC2", "Variables")
+```
+
+```{r}
+library(ggplot2)
+library(ggrepel)  # For better label placement
+library(dplyr)
+
+# Creating a ggplot2 biplot
+ggplot() +
+  # Plot the points for observations (scores)
+  geom_point(data = scores, aes(x = PC1, y = PC2), color = "blue", size = 2) +
+  
+  # Add text labels for observations (optional)
+  geom_text_repel(data = scores, aes(x = PC1, y = PC2, label = rownames(scores)), size = 3) +
+  
+  # Plot the loadings as arrows
+  geom_segment(data = loadings, aes(x = 0, y = 0, xend = PC1, yend = PC2), 
+               arrow = arrow(length = unit(0.2, "cm")), color = "red", size = 1) +
+  
+  # Add text labels for variables
+  geom_text_repel(data = loadings, aes(x = PC1, y = PC2, label = Variables), 
+                  color = "red", size = 4) +
+  
+  # Add title and labels
+  labs(title = "PCA Biplot with ggplot2", x = "PC1", y = "PC2") +
+  
+# Add horizontal and vertical axes
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  
+  
+  # Improving the theme
+  theme_minimal()
+```
+We can see that the city of Chicago is an outlier, as it is quite out of line with the other values. We'll see that this is visible when it comes to clustering. As expected from the previous analysis: manuf and pop are highly correlated and are the variables that best explain the 1st PC. The days and precipitation variables are correlated and are the variables that contribute most to explaining the 2nd PC.
+
+
+```{r}
+# Extracting scores (PC coordinates for samples) and loadings (contributions of variables)
+scores <- as.data.frame(pca_airpollution$scores)  # Principal component scores
+loadings <- as.data.frame(pca_airpollution$loadings[, 2:3])  # Loadings for the second and third PCs
+```
+
+```{r}
+# Renaming the columns for clarity
+colnames(scores) <- c("PC2", "PC3")
+rownames(scores) <- airpollution$city
+loadings$Variables <- rownames(loadings)
+colnames(loadings) <- c("PC2", "PC3", "Variables")
+```
+
+```{r}
+library(ggplot2)
+library(ggrepel)  # For better label placement
+library(dplyr)
+
+# Create a ggplot2 biplot
+ggplot() +
+  # Plot the points for observations (scores)
+  geom_point(data = scores, aes(x = PC2, y = PC3), color = "blue", size = 2) +
+  
+  # Add text labels for observations (optional)
+  geom_text_repel(data = scores, aes(x = PC2, y = PC3, label = rownames(scores)), size = 3) +
+  
+  # Plot the loadings as arrows
+  geom_segment(data = loadings, aes(x = 0, y = 0, xend = PC2, yend = PC3), 
+               arrow = arrow(length = unit(0.2, "cm")), color = "red", size = 1) +
+  
+  # Add text labels for variables
+  geom_text_repel(data = loadings, aes(x = PC2, y = PC3, label = Variables), 
+                  color = "red", size = 4) +
+  
+  # Add title and labels
+  labs(title = "PCA Biplot with ggplot2", x = "PC2", y = "PC3") +
+  
+# Add horizontal and vertical axes
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  
+  
+  # Improving the theme
+  theme_minimal()
+```
+As predicted by the previous analyses, the temp variable is the one that best explains the 3rd PC.
+Since the precip variable contributes well to explaining both the 2nd PC and the 3rd PC, the angle formed between the arrow and each of the axes is almost the same.
+
+```{r}
+# Extracting scores (PC coordinates for samples) and loadings (contributions of variables)
+scores <- as.data.frame(pca_airpollution$scores)  # Principal component scores
+loadings <- as.data.frame(pca_airpollution$loadings[, c(1, 3)])  # Loadings for the first and third PCs
+```
+
+```{r}
+# Renaming the columns for clarity
+colnames(scores) <- c("PC1", "PC3")
+rownames(scores) <- airpollution$city
+loadings$Variables <- rownames(loadings)
+colnames(loadings) <- c("PC1", "PC3", "Variables")
+```
+
+```{r}
+library(ggplot2)
+library(ggrepel)  # For better label placement
+library(dplyr)
+
+# Create a ggplot2 biplot
+ggplot() +
+  # Plot the points for observations (scores)
+  geom_point(data = scores, aes(x = PC1, y = PC3), color = "blue", size = 2) +
+  
+  # Add text labels for observations (optional)
+  geom_text_repel(data = scores, aes(x = PC1, y = PC3, label = rownames(scores)), size = 3) +
+  
+  # Plot the loadings as arrows
+  geom_segment(data = loadings, aes(x = 0, y = 0, xend = PC1, yend = PC3), 
+               arrow = arrow(length = unit(0.2, "cm")), color = "red", size = 1) +
+  
+  # Add text labels for variables
+  geom_text_repel(data = loadings, aes(x = PC1, y = PC3, label = Variables), 
+                  color = "red", size = 4) +
+  
+  # Add title and labels
+  labs(title = "PCA Biplot with ggplot2", x = "PC1", y = "PC3") +
+  
+# Add horizontal and vertical axes
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  
+  
+  # Improving the theme
+  theme_minimal()
+```
+# Clustering using K-means Algorithm
+
+We chose 3 clusters based on the number of principal components retained.
+
+```{r}
+#standardize data
+airpollution_scaled <- scale(airpollution_variables)
+```
+
+
+```{r}
+head(airpollution_scaled)
+set.seed(90)
+kmean <- kmeans(airpollution_scaled, centers = 3)
+#kmean <- kmeans(airpollution_scaled, centers = 3, nstart = 25)
+kmean
+```
+
+```{r}
+kmean$cluster
+```
+
+
+```{r}
+library(factoextra)
+fviz_cluster(kmean, data = airpollution_variables)
+```
+We interpret this graph from left to right, with the three clusters formed.
+The first cluster is made up of cities whose most significant pollution indicators are in the temperature and precipitation variables (e.g. Miami and Charlest).
+The second cluster has to do with the cities that are the most polluting according to manufacturing, population and days indicators (e.g. Detroit and Clevelan).
+The overlap of the first two clusters shows us that there are a lot of cities that share indicators, which makes sense given the problem of pollution.
+The third cluster only has two cities, that are Chicago and Philadel. We can possibly interpret Chicago as an outlier because of the very high values that it has compared to other cities.
