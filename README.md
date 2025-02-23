@@ -1,6 +1,6 @@
 # Master's of Data Science Projects-2024-2026
 --- 
-## Here you will find some projects and courses opinion and grades, related to the disciplines I attended in my Masters's degree, obtained at the Faculty of Sciences of the University of Lisbon.
+## Here you will find some projects, courses opinion and grades, related to the disciplines I attended in my Masters's degree, obtained at the Faculty of Sciences of the University of Lisbon.
 ---
 
 ## 🏆 1st Year, 1st Semester (Completed)
