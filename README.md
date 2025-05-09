@@ -20,7 +20,7 @@ Top of the class! I really enjoyed this course. It covered the fundamental conce
 ### 🗄️ Database Technologies / Advanced Databases (Tecnologias de Base de Dados / Bases de Dados Avançadas) - Grade: **18**  
 A solid course covering both traditional relational databases and more advanced NoSQL and distributed database systems. The practical work was engaging, and I really liked the focus on scalability and real-world applications.  
 
-### 🎤 Seminars in Data Science (Seminários em Ciência de Dados) - Grade: **19**  
-This course consisted of various guest lectures and presentations on different topics in data science. Some seminars were really interesting, while others felt a bit generic. Overall, a decent course that enabled to grasp different visions from the Data Science domain.
+### 🎤 Seminars in Data Science (Seminários em Ciência de Dados) - Grade: **20**  
+Top of the class again! This course consisted of various guest lectures and presentations on different topics in data science. Some seminars were really interesting, while others felt a bit generic. Overall, a decent course that enabled to grasp different visions from the Data Science domain.
 
 
